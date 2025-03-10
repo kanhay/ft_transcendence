@@ -1,147 +1,216 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import Banner from '../../components/Banner';
 import './Home.css';
-import Profileimg from './profile.jpg';
-import { IoSearch } from "react-icons/io5";
+import { IoEllipse } from "react-icons/io5";
 import { IoPersonOutline } from "react-icons/io5";
-import { BsChatDots } from "react-icons/bs";
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import axios from 'axios';
+import GameStats from './GameStats';
+import { useNotification } from '../../context/NotificationContext';
 
-const Profile = () => {
-    const friends = [
-      { id: 1, name: 'Alice Smith', message: 'Hey! How are you?', chat: <BsChatDots/>, profile:<IoPersonOutline />, image: Profileimg },
-      { id: 2, name: 'Bob Johnson', message: 'Let’s catch up soon!', chat: <BsChatDots/>, profile:<IoPersonOutline />, image: Profileimg },
-      { id: 3, name: 'Charlie Brown', message: 'I’ll be there at 5.', chat: <BsChatDots/>, profile:<IoPersonOutline />, image: Profileimg },
-      { id: 4, name: 'Charlie Brown', message: 'I’ll be there at 5.', chat: <BsChatDots/>, profile:<IoPersonOutline />, image: Profileimg },
-    ];
 
-    const lastGame = [
-      { id: 1,imgW: Profileimg, nameW: 'Bob', result: 'Won', imgL: Profileimg, nameL: 'Alice'},
-      { id: 2,imgW: Profileimg, nameW: 'Bob', result: 'Won', imgL: Profileimg, nameL: 'Alice'},
-      { id: 3,imgW: Profileimg, nameW: 'Bob', result: 'Won', imgL: Profileimg, nameL: 'Alice'},
-    ] 
 
-    const gameRank = [
-      { id: 1, rank: '1', name: 'Alice Smith', image: Profileimg,  level: 10.09},
-      { id: 2, rank: '2', name: 'Bob Johnson', image: Profileimg,  level: 6.59},
-      { id: 3, rank: '3', name: 'Charlie Brown', image: Profileimg,  level: 5.29},
-      { id: 4, rank: '4', name: 'Alice Smith', image: Profileimg,  level: 1.09}
-    ]
-
+const Home = () => {
+    const [listFriends, setListFriends] = useState([]);
+    const [gameRank, setGameRank] = useState([]);
+    const [lastGame, setLastGame] = useState([]);
     const navigate=useNavigate();
+    const { user } = useAuth();
+    const [widthLevel, setWidthLevel] = useState('0%');
+    const [level, setLevel] = useState(0);
+    const [stats, setStats] = useState({ wins: 0, losses: 0, total_games: 0 });
+    axios.defaults.withCredentials = true;
+    const { addNotification } = useNotification();
 
-    // const handleFriendsDashClick =() =>{
-    //   navigate('/Friends')
-    // }
-    // const handleProfileFrDash =() =>{
-    //   navigate('/home/profileFriend')
-    // }
-    const handleChatFrDash =() =>{
-      navigate('/chat')
+    useEffect(() => {
+      if (user) {
+          axios.get('friends/allfriends/')
+              .then((response) => {
+                  setListFriends(response.data);
+              })
+              .catch((err) => {
+                  console.log(err);
+              });
+
+          axios.get('rank/')
+              .then((response) => {
+                  setGameRank(response.data);
+              })
+              .catch((err) => {
+                  console.log(err);
+              });
+
+          axios.get(`game/gamehistory/${user.id}/`)
+              .then((response) => {
+                  setLastGame(response.data);
+              })
+              .catch((err) => {
+                  console.log(err);
+              });
+
+          axios.get(`infoUserProfile/${user.id}/`)
+          .then(response => {
+                  const { wins, losses, widthlvl , level } = response.data;
+                  const total_games = wins + losses;
+                  setStats({ wins, losses, total_games });
+                  setLevel(level)
+                  setWidthLevel( widthlvl + '%')
+              })
+              .catch(error => {
+                  console.error("Error fetching user stats:", error);
+              });
+      }
+    }, [user]);
+
+    const handleClick = () =>{
+      axios.get(`game/checkuseringame/`)
+      .then((response) => {
+          if(response.data.message === "Active game"){
+            addNotification("You are already playing a game!", "warning")
+          }
+          else{
+            navigate(`/game/Online/`)
+          }
+      })
     }
 
-  return (
-    <div className="dashboard-container">
-      <Banner />
-      <div className='search-profile'>
-        {/* Search Bar */}
-        <div className="search-bar">
-          <IoSearch className="search-icon" />
-          <input type="text" placeholder="Search..." className="dash-text-search"/>
-        </div>
-        {/* Profile Info */}
-        <div className="dashboard-profile">
-          <img src={Profileimg} alt="Profile" className="profile-photo-dash" />
-          <div className="profile-details">
-            <div className='profile-details-name'>Alice Smith</div>
-            <div className='profile-details-lvl'>Level: 3.70</div>
+
+    return (
+      <>
+        <Banner />
+      <div className="dashboard-container">
+          <div className='stats-profile'>
+            <div className="dashboard-profile">
+                  <div className="dash-user-name"> 
+                    {user && user.avatar ? <img src={user.avatar} alt='Profileimg' className="dash-profile-photo"/> : null}
+                    <div className="dash-name-status">
+                      {user ? user.username : ''}  
+                      <div className="dash-status">
+                      <IoEllipse className="dash-profile-status-icon"/><span>{user ? user.status : ''}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="info-stats">
+                        <p><strong>Wins:</strong> {stats.wins}</p>
+                        <p><strong>Losses:</strong> {stats.losses}</p>
+                        <p><strong>Total Games:</strong> {stats.total_games}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="dash-level">
+                    <div className="dash-level-bar">
+                    <div className="dash-level-fill" style={{ width: widthLevel }}> <div className="dash-my-level">{level +"."+ widthLevel} </div></div>
+                  </div>
+                </div>
+            </div>
+            <div className='gamestats'>
+              <div className='stats'><GameStats/></div>
+            </div>            
           </div>
-        </div>
+            <div className='big-container'>
+            <div className="game-modes">
+              <div className="game-mode">
+                <div className='play-modes'>Solo practice</div>
+                <div><Link className="game-mode-button" to={`/home/SoloPractice/`}><button>Start</button></Link></div>
+              </div>
+              <div className="game-mode">
+                <div className='play-modes'>Challenge a friend </div>
+                <div><Link className="game-mode-button" to={`/home/ChallengeAFriend/`}><button>Start</button></Link></div>
+              </div>
+              <div className="game-mode">
+                <div className='play-modes'>Tournament</div>
+                <div><Link className="game-mode-button" to={`/home/TournamentLocal/`}><button>Start</button></Link></div>
+              </div>
+              <div className="game-mode">
+                <div className='play-modes'> Play online</div>
+                <div><Link className="game-mode-button" ><button onClick={handleClick}>Start</button></Link></div>
+              </div>
+            </div>
+            </div>
+            
+            <div className="lists-container">
+              <div className='one-list-container'>
+                <div className='list-title'>
+                <span >Last Game</span>
+                </div>
+                <div className="game-list">
+                    {lastGame.length > 0 ? (lastGame.map(last => (
+                      <div key={last.id} className='game-item'>
+                        <div className="last-game-profile">
+                          {last && last.avatarW ? <img src={last.avatarW} alt="Winner" className="game-photo" /> : null}
+                          <span className="last-game-username">{last.nameW}</span>
+                        </div>
+                        <div className='last-game-result'>
+                          <span className='last-game-score'> {last.scoreW} - {last.scoreL}</span>
+                          <span className="last-game-date">{last.date}</span>
+                        </div>
+                        <div className="last-game-profile">
+                          {last && last.avatarL ? <img src={last.avatarL} alt="Loser" className="game-photo" /> : null}
+                          <span className="last-game-username">{last.nameL}</span>
+                        </div>
+                      </div>
+                    ))) : (
+                      <div className="game-item-no-f">No Last Game yet.</div>
+                    )}
+              </div>
+            </div>
+
+            <div className='one-list-container'>
+              <div className='list-title'>
+                <span >Game Rank</span>
+              </div>
+              <div className="game-list">
+                {gameRank.map((rank, index) => (
+                  <div key={index} className="game-item">
+                    <span className="rank-nb">{rank.rank}</span>
+                    <div className="rank-photo">
+                      <img
+                        src={rank ? rank.avatar : null}
+                        alt="rank"
+                        
+                      />
+                    </div>
+                    <span className="rank-name">{rank.name}</span>
+                    <span className="rank-level">lvl: {rank.level+"."+rank.widthlvl+"%"}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className='one-list-container'>
+              <div className='list-title'>
+                <span >Friends</span>
+              </div>
+              <div className="game-list">
+                  {listFriends.length > 0 ? (listFriends.map(friend => (
+                    <div key={friend.id} className="game-item">
+                      {friend && friend.avatar ? <img src={friend.avatar} alt="img" className="friend-photo-dash" /> : null}
+                      <div className="friend-info-dash">
+                        <span className='friend-name-dash'>{friend.username}</span>
+                        <div className='friend-msg-dash'>
+                        <IoEllipse 
+                        style={{ 
+                          color: friend.status === 'Online' ? '#BBFC52' : '#E84172' 
+                        }} 
+                        className="dash-status-icon" 
+                      />
+                        <span>{friend.status}</span>
+                        </div>
+                      </div>
+                      <div className="friend-icons-dash">
+                        <Link className="icon-dash" to={`/home/${friend.id}`}><IoPersonOutline /></Link>
+                      </div>
+                    </div>
+                  ))) : (
+                    <div className="game-item-no-f">No Friends yet.</div>
+                  )}
+              </div>
+  
+            </div>
+            </div>
       </div>
-          {/* Game Modes */}
-          <div className='titles-dashboard'><div className='title-game-mode' >Game Modes</div></div>
-          <div className="game-modes">
-            <div className="game-mode-bot">
-              <div className='play-modes'>Play Bot Mode</div>
-              <button className="game-mode-button">Start</button>
-            </div>
-            <div className="game-mode-random">
-              <div className='play-modes'>Play Random Mode</div>
-              <button className="game-mode-button">Start</button>
-            </div>
-            <div className="game-mode-friends">
-              <div className='play-modes'>Play with Friend</div>
-              <button className="game-mode-button">Start</button>
-            </div>
-          </div>
-          
-          <div className="game-rank-last">
-          <div>
-            {/* Last Game */}
-            <div className='titles-dashboard'><div className='title-dash'>Last Game</div></div>
-            <div className="last-game">
-              <ul className='list-last-game'>
-                {lastGame.map(last =>(
-                  <li key={last.id} className="last-game-item">
-                    <div className='last-game-profile-name'>
-                      <img src={last.imgW} alt="Last Game" className="game-photo-won"/>
-                      <span className='last-game-name'>{last.nameW}</span>
-                    </div>
-                    <span className='last-game-result'>{last.result}</span>
-                    <div className='last-game-profile-name'>
-                      <img src={last.imgL} alt="Last Game" className="game-photo-lost"/>
-                      <span className='last-game-name'>{last.nameL}</span>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
+      </>
+    );
+  };
 
-          {/* {Game Rank} */}
-          <div>
-            <div className='titles-dashboard'><div className='title-dash'>Game Rank</div></div>
-            <div className="game-rank">
-              <ul className="game-rank-list">
-                {gameRank.map(rank => (
-                  <li key={rank.id} className="rank-item">
-                      <span className="rank-nb">{rank.rank}</span>
-                      <img src={rank.image} alt={rank.name} className="rank-photo" />
-                      <span className="rank-name">{rank.name}</span>
-                      <span className="rank-level">{rank.level}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-          <div>
-            {/* Friends List */}
-            <div className='titles-dashboard'><div className='title-dash'>Friends</div></div>
-            <div className="dashboard-friends">
-              <ul className='dashboard-friends-list'>
-                {friends.map(friend => (
-                  <li key={friend.id} className="friend-item-dash">
-                    <img src={friend.image} alt={friend.name} className="friend-photo-dash" />
-                    <div className="friend-info-dash">
-                      <span className='friend-name-dash'>{friend.name}</span>
-                      <span className='friend-msg-dash'>{friend.message}</span>
-                    </div>
-                    <div className="friend-icons-dash">
-                      <Link className="icon-dash" to={`/home/${friend.id}`}>{friend.profile}</Link>
-                      <Link className="icon-dash" onClick={handleChatFrDash}>{friend.chat}</Link>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-              {/* <div className="all-friends-dash" onClick={handleFriendsDashClick}><div className="text-all-friends-dash">All Friends</div></div> */}
-            </div>
-
-          </div>
-
-      </div>
-
-    </div>
-  );
-};
-
-export default Profile;
+export default Home;

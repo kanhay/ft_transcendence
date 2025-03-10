@@ -5,45 +5,46 @@ import { Si42 } from "react-icons/si";
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { handleLogin42 } from './AuthUtils';
+import { useNotification } from '../../context/NotificationContext';
 
 
 
 const SignUp = () => {
-    // const { login } = useAuth();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [email, setEmail] = useState('');
     const [password2, setPassword2] = useState('');
-    const [emailError, setEmailError] = useState('');
-    const [passwordError, setPasswordError] = useState('');
     
-
+  const { addNotification } = useNotification();
   const navigate = useNavigate();
 
   const handleSignUp = (e) => {
     e.preventDefault();
-    setEmailError('');
-    setPasswordError('');
   
-    // const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    // if (!emailRegex.test(email)) {
-    //   setEmailError("Please enter a valid email address.");
-    //   return;
-    // }
-    
-
     if (password !== password2) {
-      setPasswordError("Passwords do not match.");
+      addNotification("Passwords do not match", "error");
       return;
     }
-    if (password.length < 6) {
-      setPasswordError('Password must be at least 6 characters long.');
+    else if (username.length < 3) {
+      addNotification("Username must be at least 3 characters long.", "warning");
+      return ;
+    }
+    else if (username.length > 8) {
+      addNotification("Username must be no more than 8 characters long.", "warning");
+      return ;
+    }
+    else if (!/^[a-zA-Z0-9]+$/.test(username)) {
+      addNotification("Username must be alphanumeric.", "warning");
+      return ;
+    }
+    else if (password.length < 8) {
+      addNotification("Password must be at least 8 characters long", "warning");
       return;
     }
   
     axios({
       method: 'post',
-      url: 'http://localhost:8000/api/register/',
+      url: 'register/',
       data: {
         email: email,
         password: password,
@@ -51,24 +52,30 @@ const SignUp = () => {
         display_name: username,
       },
     })
-      .then((data) => {
-        console.log(data);
-        navigate('/signIn');
-      })
-      .catch((error) => {
-        if (error.response) {
-          const errorData = error.response.data;
-  
-          if (errorData.email) {
-            setEmailError(errorData.email[0]);
-          }
-          if (errorData.password) {
-            setPasswordError(errorData.password[0]);
-          }
-        } else {
-          alert("Network error. Please check your connection.");
+    .then((data) => 
+    {
+      addNotification("Account created successfully! Please log in.", "success");
+      navigate('/signIn');
+    })
+    .catch((error) => 
+    {
+      if (error.response) 
+      {
+        const errorData = error.response.data;
+        if (errorData.email) 
+        {
+          addNotification(errorData.email[0], "error");
         }
-      });
+        if (errorData.password) 
+        {
+          addNotification(errorData.password[0], "error");
+        }
+      } 
+      else 
+      {
+        addNotification("Network error. Please check your connection.", "error");
+      }
+    });
   };
 
 
@@ -86,10 +93,7 @@ const SignUp = () => {
                 type="email"
                 placeholder="Email"
                 value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  setEmailError('');
-                }}
+                onChange={(e) => {setEmail(e.target.value);}}
                 className='sup-input'
               />
             </div>
@@ -120,8 +124,6 @@ const SignUp = () => {
                   className='sup-input'
                   />
             </div>
-            {emailError && <p className='sup-error' >{emailError}</p>}
-            {passwordError && <p className='sup-error' >{passwordError}</p>}
             <div><button type="submit" className='sup-button-login'>Sign up</button>
 
             </div>

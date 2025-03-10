@@ -4,7 +4,18 @@
     justify-content: flex-start;
     align-items: flex-start;
     padding:90px 10px;
+    width: 95px;
+
   }
+
+  .iconTitle {
+    display: flex;
+    flex-direction: row;
+    justify-content:flex-start;
+    align-items: center;
+    gap: 4px;
+  }
+
   
   .nav-items {
     list-style: none;
@@ -44,31 +55,7 @@
 }
 
 
-@media (max-width: 768px) {
-.hamburger {
-    display: block;
-}
 
-
-
-.nav-items {
-    display: none;
-    flex-direction: column;
-    top: 60px;
-    left: 80;
-    width: 100%;
-    z-index: 1px;
-}
-
-.nav-items.open {
-    display: flex;
-}
-
-.nav-item {
-    text-align: center;
-    margin: 10px 0;
-}
-}
 
 .nav-icon {
 margin-right: 4px;
@@ -82,8 +69,8 @@ margin-right: 4px;
   object-fit: cover;
 }
 
-.name{
-  margin-left: 30%;
+.username{
+  text-align: center;
   color: white;
   font-size: 15px;
   font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;

@@ -18,13 +18,13 @@ body{
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 5px; /*line thickness */
-    height: 100%; /*line height */
+    width: 5px;
+    height: 100%;
     background: repeating-linear-gradient(
         #D5CFCF 0,
-        #D5CFCF 10px, /*length of each dash*/
+        #D5CFCF 10px,
       transparent 10px,
-      transparent 20px /*space between dashes */
+      transparent 20px
       );
 }
 .paddle4bot{
@@ -53,13 +53,13 @@ body{
     position: absolute;
     animation: moveBall 4s infinite alternate linear;
     }
-    @keyframes moveBall {
+@keyframes moveBall {
         0% {
             top: 0px;
             left: 20px;
         }
         50% {
-            top: 270px; /*adjust to control vertical movement */
+            top: 270px;
             left: 370px;
         }
         100% {
@@ -68,8 +68,8 @@ body{
         }
     }
 @keyframes movePaddleBot {
-from {top: 0px;}
-to {top: 240px;}
+    from {top: 0px;}
+    to {top: 240px;}
 }
 @keyframes movePaddlePlayer {
 from {top: 240px;}

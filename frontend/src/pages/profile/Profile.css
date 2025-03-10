@@ -5,7 +5,7 @@
 }
 
 .title-profile{
-  padding-left: 82px;
+  padding-left: 85px;
   font-size: 20px;
   color: white;
   font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
@@ -19,6 +19,7 @@
 
 .info-profile {
   margin-left: 90px;
+  margin-top: 20px;
   width: 800px;
   background-color: #636987;
   height: 200px;
@@ -30,8 +31,7 @@
 .infos {
   display: flex;
   justify-content: space-between;
-  gap: 20px;
-  margin-top: 20px;
+  margin-top: 50px;
 }
 
 
@@ -45,7 +45,6 @@
 .info-history,
 .info-achievement {
   width: 300px;
-  max-width: 300px;
   height: 400px;
   background-color: #636987;
   border-radius: 17px;
@@ -82,9 +81,9 @@
   gap: 4px;
 }
 
-.status-icon {
+.profile-status-icon {
   color: #BBFC52;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .level{
@@ -114,9 +113,8 @@
 }
 
 .edit{
-  margin-top: 10px;
   margin-left: 600px;
-  width: 70px;
+  width: 90px;
   background-color: #E84172;
   height: 26px;
   border-radius: 15px;
@@ -126,22 +124,22 @@
 
 .edit:hover{
   background-color: #d1406c;
-  border-color: #4c0419;
+  border-color: #3F4054;
 }
 
 .text-edit{
-  padding-top: 5px;
+  padding-top: 4px;
   color: rgb(242, 219, 219);
-  padding-left: 16px;
+  padding-left: 30px;
   font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
 
 }
 
 .friends-list {
   list-style: none;
-  padding: 10px;
+  padding: 8px;
   margin: 0;
-  max-height: 360px;
+  max-height: 95.8%;
   overflow-y: auto;
   color: white;
   font-size: 16px;
@@ -156,8 +154,8 @@
 }
 
 .friend-photo {
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   margin-right: 10px;
   object-fit: cover;
@@ -200,9 +198,9 @@
 
 .history-list {
   list-style: none;
-  padding: 10px;
+  padding: 8px;
   margin: 0;
-  max-height: 360px;
+  max-height: 95.8%;
   overflow-y: auto;
   color: white;
   font-size: 16px;
@@ -211,9 +209,9 @@
 
 .achievement-list {
   list-style: none;
-  padding: 10px;
+  padding: 8px;
   margin: 0;
-  max-height: 360px;
+  max-height: 95.8%;
   overflow-y: auto;
   color: white;
   font-size: 16px;
@@ -226,24 +224,21 @@
 }
 
 .history-profile {
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   margin-right: 10px;
   object-fit: cover;
-  margin-top: 2px;
   
 }
 
 .history-result {
-  padding-top: 15px;
-  color: #BBFC52;
-  flex-basis: 20%;
+  width: 20%;
 }
 
 .history-level {
-  padding-top: 15px;
-  color: white;
+  font-size: 14px;
+  color: #d3d3d3;
 }
 
 
@@ -252,11 +247,10 @@
   padding-left: 20px;
   display: flex;
   align-items: center;
-  margin: 10px 0;
 }
 
 .achievement-icon {
-  font-size: 24px;
+  font-size: 30px;
   color: #D8FD62;
   margin-right: 10px;
 }
@@ -269,7 +263,6 @@
 .achievement-title {
   list-style: none;
   padding: 10px;
-  margin: 0;
   max-height: 350px;
   overflow-y: auto;
   color: white;
@@ -283,47 +276,19 @@
   margin-top: 4px;
 }
 
-.all-friends-button {
-  padding-top: 6px;
-  margin-left: 170px;
-  width: 94px;
-  background-color: #E84172;
-  height: 23px;
-  border-radius: 15px;
-  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-  border: 0.5px solid #3F4054;
-  cursor: pointer;
+
+.friend-item,
+.achievement-item,
+.history-item{
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  margin-bottom: 8px;
+  background-color: #505468;
+  border-radius: 10px;
 }
 
-.all-friends-button:hover{
-  background-color: #d1406c;
-  border-color: #4c0419;
+.profile-status-icon{
+  font-size: 11px;
 }
-
-/* .text-all-friends,
-.text-all-achievement{
-  color: rgb(242, 219, 219);
-  padding-left: 13px;
-  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-} */
-
-/* 
-.all-achievement-button {
-  margin-top: 35px;
-  margin-left: 140px;
-  padding-top: 6px;
-  width: 130px;
-  background-color: #E84172;
-  height: 23px;
-  border-radius: 15px;
-  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-  border: 0.5px solid rgb(242, 219, 219);
-  cursor: pointer;
-}
-
-.all-achievement-button:hover{
-  background-color: #d1406c;
-  border-color: #4c0419;
-} */
-
          

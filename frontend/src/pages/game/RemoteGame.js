@@ -1,193 +1,318 @@
-import React, { useEffect, useRef } from 'react';
-import "./PongGame.css"
-import { Navigate } from 'react-router-dom';
-// import AdversariesBar from './AdversariesBar';
-import { useNavigate } from 'react-router-dom';
 
-const Online = () => {
+
+import React, { useEffect, useRef, useState } from "react";
+import "./PongGame.css";
+import { useParams, useNavigate  } from 'react-router-dom';
+import "./Score.css"
+import { MdOutlineRestartAlt } from "react-icons/md";
+import { Link } from "react-router-dom";
+import { useAuth, wslink } from '../../context/AuthContext';
+import axios from 'axios';
+import { useNotification } from '../../context/NotificationContext';
+
+
+const TwoPlayersGame = () => {
+    const {gameId} = useParams()
+    const wsRef = useRef(null);
     const canvasRef = useRef(null);
+    const CANVAS_WIDTH = 1000;
+    const CANVAS_HEIGHT = 700;
+    const PADDLE_WIDTH = 20;
+    const PADDLE_HEIGHT = 100;
+    const WINNING_SCORE = 7;
+    const { addNotification } = useNotification();
+    
+    const players = useRef([
+        {id:null, x: 0, y: 0, score: 0, name:"", img:null},
+        {id:null, x: CANVAS_WIDTH - PADDLE_WIDTH, y: 0, score: 0, name:"", img:null},]);
+        
+        
+        const ballRef = useRef({x: CANVAS_WIDTH/2,
+        y: CANVAS_HEIGHT/2, 
+        radius: 12, 
+        speed: 0, 
+        velocityX: 0, 
+        velocityY: 0});
+
+        const start = useRef(false);
+        const GameOver = useRef(false);
+        const [finish, setFinish] = useState(false);
+        const [isGet, setIsGet] = useState(false);
+        const {user} = useAuth();
+        const navigate = useNavigate();
+        axios.defaults.withCredentials = true;
+        
+        
+        useEffect(() => {
+            axios.get(`game/gamestatus/${gameId}/`)
+            .then((response) => {
+                if (response.data.message === "completed game"){
+                    GameOver.current = true;
+                    setIsGet(true)
+                    navigate('..')
+                }
+                else if (response.data.message === "Active final game"){
+                    setFinish(false)
+                    setIsGet(false)
+                    GameOver.current = false
+                    start.current = false
+                    players.current[0].score = 0
+                    players.current[1].score = 0
+                }
+            })
+            .catch((err) => console.log(err.response));
+        }, [user ,gameId, navigate])
 
 
-    const ballRef = useRef({x: 0, y: 0, radius: 15, color: "white", speed: 9, velocityX: 9, velocityY: 9});
-    const netRef = useRef({ x: 0, y: 0, w: 6, h: 12 });
-    const rightPlayerRef = useRef({ x: 0, y: 0, w: 20, h: 120, color: "#E84172", score: 0 });
-    const leftPlayerRef = useRef({ x: 0, y: 0, w: 20, h: 120, color: "#D8FD62", score: 0 });
+        useEffect(() => {
+        if (start.current && isGet) return;
+            axios.get(`game/playersinfo/${gameId}/`)
+            .then((response) => {
+                const { player1, player2 } = response.data;
+                if (player1.id === user.id){
+                    players.current[0].img = player1.avatar;
+                    players.current[0].name = player1.username;
+                    players.current[1].img = player2.avatar;
+                    players.current[1].name = player2.username;
+                }
+                else {
+                    players.current[1].img = player1.avatar;
+                    players.current[1].name = player1.username;
+                    players.current[0].img = player2.avatar;
+                    players.current[0].name = player2.username;
+                }
+                setIsGet(true);
+            })
+        .catch((err) => console.log(err.response));
+    }, [gameId, isGet, user])
 
-    const lPaddleMoveRef = useRef({ up: false, down: false });
-    const rPaddleMoveRef = useRef({ up: false, down: false });
-    // const isrunningGame = useRef(true);
-    const wsRef = useRef(null); // WebSocket reference
-    const navigate = useNavigate();
+    const handleKeyEvent = (e) => {
+        e.preventDefault();
+        const isPressed = (e.type === "keydown")
+        if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W')
+            if (wsRef.current)
+                wsRef.current.send(JSON.stringify({ move: 'up', value: isPressed }));
+        if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S')
+            if (wsRef.current)
+                wsRef.current.send(JSON.stringify({ move: 'down', value: isPressed }));
+    };
 
     useEffect(() => {
-
+        // if (!Number.isInteger(gameId)){
+        //     navigate('..')
+        //     return;
+        // }
+        if (GameOver.current) return;
+        wsRef.current = new WebSocket(wslink(`game/${gameId}`));
         const canvas = canvasRef.current;
-        canvas.width = 1000;
-        canvas.height = 700;
+        const ctx = canvas.getContext("2d");
 
-        const lPaddleMove = lPaddleMoveRef.current;
-        const rPaddleMove = rPaddleMoveRef.current;
-
-        const ball = ballRef.current;
-        ball.x = canvas.width/2;
-        ball.y = canvas.height/2;
-
-        const bot = rightPlayerRef.current;
-        bot.x = canvas.width - bot.w;
-        bot.y = canvas.height - bot.h;
-
-        const playerL = leftPlayerRef.current;
-        const playerR = rightPlayerRef.current;
-        const net = netRef.current;
-        net.x = canvas.width / 2 - net.w / 2;
-
-        // Setup WebSocket
-        //wsRef is s useRef hook that hols a reference to ws instance
-        wsRef.current = new WebSocket('ws://127.0.0.1:8000/ws/game/'); // Replace with server address
-
-        wsRef.current.onopen = () => {
-            console.log("WebSocket connected9999999999");
-        };
+        wsRef.current.onopen = () => console.log("WebSocket connected successfully");
 
         wsRef.current.onmessage = (message) => {
-            // Parse the JSON string into an object
-
-            // Example: data = { leftPlayer: { y: 50 }, rightPlayer: { y: 100 } }
-
             const data = JSON.parse(message.data);
-
-            if (data.ball) {
-                if (ball.x !== data.ball.x || ball.y !== data.ball.y) {
-                    ball.x = data.ball.x;
-                    ball.y = data.ball.y;
+            if (data.ball){
+                ballRef.current.x = data.ball.x;
+                ballRef.current.y = data.ball.y;
+            } 
+            if (data.start){
+                if( data.player1.id === user.id){
+                    players.current[0].id = data.player1.id;
+                    players.current[1].id = data.player2.id;
+                }
+                else{
+                    players.current[1].id = data.player1.id;
+                    players.current[0].id = data.player2.id;
+                }
+                start.current = true;
+            }
+            if (data.player1 && data.player2){
+                if (data.player1.id === players.current[0].id){
+                    players.current[0].y = data.player1.y;
+                    players.current[0].score = data.player1.score;
+                    players.current[1].y = data.player2.y;
+                    players.current[1].score = data.player2.score;
+                }
+                else{
+                    players.current[1].y = data.player1.y;
+                    players.current[1].score = data.player1.score;
+                    players.current[0].y = data.player2.y;
+                    players.current[0].score = data.player2.score;
+                    if (data.ball){
+                        ballRef.current.x = CANVAS_WIDTH - ballRef.current.x;
+                    }
                 }
             }
-            if (data.leftPlayer) {
-                leftPlayerRef.current.y = data.leftPlayer.y;
-                leftPlayerRef.current.score = data.leftPlayer.score;
+            if (data.disconnected) {
+                GameOver.current = true;
+                players.current[0].score = WINNING_SCORE;
+                players.current[1].score = 0;
+                    wsRef.current.close();
+                axios.get(`game/abandon/${gameId}/`)
+                .then(() => {
+                    axios.delete(`game/removerequestship/${gameId}/`)
+                    .then((response) => {
+                        console.log(response.data.message)
+                    })
+                    .catch()
+                    axios.get(`game/roundwinner/${gameId}/`)
+                    .then((response) => {
+                        if (response.data.message === "ok"){
+                            addNotification("Waiting for your opponent to join. Living now means giving up the final round.", "warning");
+                        }
+                    })
+                })
+                .catch((err) => {
+                    console.log(err);
+                });
+                setTimeout(() => {
+                    setFinish(true);
+                }, 800);
+                return;
             }
-            if (data.rightPlayer) {
-                rightPlayerRef.current.y = data.rightPlayer.y;
-                rightPlayerRef.current.score = data.rightPlayer.score;
-            }
-            if (data.winner)
-                if (data.winner === "leftPlayer" || data.winner === "rightPlayer")
-                    navigate(`/game/Local/SingleGame/SoloPractice/Score`);
-            console.log('score right', rightPlayerRef.current.score);
-            console.log('score left', leftPlayerRef.current.score);
         };
+        wsRef.current.onerror = (error) => console.error("WebSocket error:", error);
 
-        wsRef.current.onclose = () => {
-            console.log("WebSocket disconnected");
-        };
+        wsRef.current.onclose = () => console.log("WebSocket disconnected");
+    
+        window.addEventListener('keydown', handleKeyEvent);
+        window.addEventListener('keyup', handleKeyEvent);
 
-        const renderGame = () => {
-            const ctx = canvas.getContext("2d");
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Draw table
+        const renderGame = (ctx) => {
+            if (GameOver.current) return;
+            ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        
             ctx.fillStyle = "#636987";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-            // Draw the net
-            ctx.fillStyle = "#D9D9D9";
-            for (let i = 0; i < canvas.height; i += 20) {
-                ctx.fillRect(net.x, net.y + i, net.w, net.h);
+            if (!start.current){
+                ctx.font = "40px Arial"; 
+                ctx.fillStyle = "white"; 
+                ctx.textAlign = "center";
+                ctx.fillText("The game is starting now!", canvas.width / 2, canvas.height / 2);
+                return;
             }
 
-            //draw ball
-            ctx.beginPath();
-            ctx.fillStyle = ball.color;
-            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2, false);
-            ctx.fill();
-            ctx.closePath();
-            // Draw paddles
-            ctx.fillStyle = leftPlayerRef.current.color;
-            ctx.fillRect(playerL.x, playerL.y, playerL.w, playerL.h);
+            ctx.fillStyle = "#D9D9D9";
+            for (let i = 0; i < CANVAS_HEIGHT; i += 20){
+                ctx.fillRect(CANVAS_WIDTH/2 - 6/2, i, 6, 12);
+            }
 
-            ctx.fillStyle = rightPlayerRef.current.color;
-            ctx.fillRect(playerR.x, playerR.y, playerR.w, playerR.h);
-
-            //Draw score
             ctx.fillStyle = "white";
             ctx.font = "60px rationale";
-            ctx.fillText(playerL.score, canvas.width/4, canvas.height/5);
-            ctx.fillText(playerR.score, canvas.width/4 * 3, canvas.height/5);
-
-        };
+            ctx.fillText(players.current[0].score, CANVAS_WIDTH / 4, CANVAS_HEIGHT / 5);
+            ctx.fillText(players.current[1].score, (CANVAS_WIDTH / 4) * 3, CANVAS_HEIGHT / 5);
         
-        const handleKeyDown = (event) => {
-            if (event.key === 'ArrowDown')
-                rPaddleMove.down = true;
-            if (event.key === 'ArrowUp')
-                rPaddleMove.up = true;
-            if (event.key === 's' || event.key === 'S')
-                lPaddleMove.down = true;
-            if (event.key === 'w' || event.key === 'W')
-                lPaddleMove.up = true;
+            if (players.current[0].score >= WINNING_SCORE || players.current[1].score >= WINNING_SCORE){
+                wsRef.current.close();
+                ctx.fillStyle = "white";
+                ctx.font = "90px rationale";
 
-        };
-        const handleKeyUp = (event) => {
-            if (event.key === 'ArrowDown')
-                rPaddleMove.down = false;
-            if (event.key === 'ArrowUp')
-                rPaddleMove.up = false;
-            if (event.key === 's' || event.key === 'S')
-                lPaddleMove.down = false;
-            if (event.key === 'w' || event.key === 'W')
-                lPaddleMove.up = false;
-        };
-        window.addEventListener('keydown', handleKeyDown);
-        window.addEventListener('keyup', handleKeyUp);
-
-        const movePaddle = () => {
-            if (lPaddleMove.up) {
-                playerL.y = Math.max(0, playerL.y - 15);
+            if (players.current[0].score >= WINNING_SCORE){
+                ctx.fillText("WIN!", (CANVAS_WIDTH / 12) * 3, CANVAS_HEIGHT / 2);
+                ctx.fillText("LOSE!", (CANVAS_WIDTH/12) * 9, CANVAS_HEIGHT / 2);
             }
-            if (lPaddleMove.down) {
-                playerL.y = Math.min(canvas.height - playerL.h, playerL.y + 15);
+            else{
+                ctx.fillText("LOSE!", (CANVAS_WIDTH / 12) * 3, CANVAS_HEIGHT / 2);
+                ctx.fillText("WIN!", (CANVAS_WIDTH/12) * 9, CANVAS_HEIGHT / 2)
             }
-
-            if (rPaddleMove.up) {
-                playerR.y = Math.max(0, playerR.y - 15);
-            }
-            if (rPaddleMove.down) {
-                playerR.y = Math.min(canvas.height - playerR.h, playerR.y + 15);
-            }
-
-            // Send paddle movement to server
-            //?. to make sure wsRef isnt null or undefined
-            wsRef.current?.send(
-                JSON.stringify({
-                    //The client sends data as a JSON string
-                    //leftPlayer is an object and y is its property
-                    // {
-                    //     "leftPlayer": { "y": 50 },
-                    //     "rightPlayer": { "y": 100 }
-                    // }
-                    leftPlayer: { y: playerL.y, score: playerL.score},
-                    rightPlayer: { y: playerR.y, score: playerR.score}
+                axios.post(`game/update-score/${gameId}/`, {
+                    player1_id: players.current[0].id,
+                    player2_id: players.current[1].id,
+                    player1_score: players.current[0].score,
+                    player2_score: players.current[1].score,
                 })
-            );
-        };
-
-        const gameInterval = setInterval(renderGame, 1000 / 60);
-        const keyPressInterval = setInterval(movePaddle, 1000 / 60);
-        return () => {
-            clearInterval(gameInterval);
-            clearInterval(keyPressInterval);
-            window.removeEventListener('keydown', handleKeyDown);
-            window.removeEventListener('keyup', handleKeyUp);
+                .then((response) => {
+                    console.log(response.data);
+                    axios.delete(`game/removerequestship/${gameId}/`)
+                    .then((response) => {
+                        console.log(response.data.message)
+                    })
+                    .catch((err) => console.log(err.response))
+                })
+                .catch((err) => console.log(err.response));
+                GameOver.current = true;
+                setTimeout(() => {
+                    setFinish(true);}, 1800);
+                return;   
+                }
+            ctx.beginPath();
+            ctx.fillStyle = "white";
+            ctx.arc(ballRef.current.x, ballRef.current.y, ballRef.current.radius, 0, Math.PI * 2, false);
+            ctx.fill();
+            ctx.closePath();
+            
+            ctx.fillStyle = "#D8FD62";
+            ctx.fillRect(players.current[0].x, players.current[0].y, PADDLE_WIDTH, PADDLE_HEIGHT);
+            ctx.fillStyle = "#E84172";
+            ctx.fillRect(players.current[1].x, players.current[1].y, PADDLE_WIDTH, PADDLE_HEIGHT);
             
         };
-    }, []);
+        const interval = setInterval(() => renderGame(ctx), 1000 / 60);
 
-    return (
+        window.addEventListener('keydown', handleKeyEvent);
+        return () => {
+            clearInterval(interval);
+            window.removeEventListener('keydown', handleKeyEvent);
+            window.removeEventListener('keyup', handleKeyEvent);
+            if (wsRef.current){
+                wsRef.current.close();
+                }
+        };
+    }, [gameId, user, finish, addNotification, navigate]);
+
+        return (
         <div className='game_container'>
-            <canvas ref={canvasRef}></canvas>
+            { !finish ? (
+                <div>
+                    <div className='adversaries'>
+                        <div className='player1'>
+                            <span className="p-img">{players.current[0] && players.current[0].img && <img src={players.current[0].img} alt="player1"></img>}</span>
+                            <span className="p-name1">{players.current[0].name}</span>
+                            <span className="V">V</span>
+                        </div>
+                        <div className='player2'>
+                                <span className="S">S</span>
+                                <span className="p-name2">{players.current[1].name}</span>
+                                <span className="p-img">{players.current[1] && players.current[1].img && <img src={players.current[1].img} alt="player2"></img>}</span>
+                        </div>
+                      </div>
+                      <canvas ref={canvasRef} width={CANVAS_WIDTH} height={CANVAS_HEIGHT}></canvas>
+                </div>
+            ):(
+                <div>
+                    <div className="Restart-background">
+            <div className="score-elements">
+                <div className="Scores">
+                    <div className="rectangle-container">
+                        <div className="Rectangle" >
+                            <div className="result">{players.current[0].score}</div>
+                        </div>
+                    </div>
+                    <div className="rectangle-container">
+                        <div className="Rectangle">
+                            <div className="result">{players.current[1].score}</div>
+                        </div>
+                    </div>
+                </div>
+                <div className="bar">
+                    <div className="right-text">{players.current[0].name}</div>
+                    <div className="Restart-vs">
+                        <span className="Rest-V">V</span>
+                        <span className="Rest-S">S</span>
+                    </div>
+                    <div className="left-text">{players.current[1].name}</div>
+                </div>
+                <div className="Restart-button">
+                    <Link className="Restart-b" to={`..`}> <MdOutlineRestartAlt /> </Link>
+                </div>
+            </div>
         </div>
-    );
-};
+                </div>
+            )}
+        </div>
+    )
+}
 
+export default TwoPlayersGame
 
-export default Online;

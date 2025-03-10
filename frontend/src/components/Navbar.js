@@ -10,14 +10,16 @@ import { BsChatDots } from "react-icons/bs";
 import { AiOutlineSetting } from "react-icons/ai";
 import { TbLogout2 } from "react-icons/tb";
 import { FaBars } from "react-icons/fa";
-import Banner from '../images/imgprofile.jpg';
+import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
   const location = useLocation();
+  const { user } = useAuth();
+  
   const [menuOpen, setMenuOpen] = useState(false);
 
 
-  const getIconStyle = (path) => ({
+  const getIconStyle = () => ({
     color: '#BBFC52',
     fontSize: '20px',
   });
@@ -28,42 +30,57 @@ const Navbar = () => {
         <FaBars />
       </div>
       <ul className={`nav-items ${menuOpen ? 'open' : ''}`}>
-        <img src={Banner} alt='Banner' className='img-profile'/>
-        <p className='name'>Name</p>
+        {user && user.avatar ? <img src={user.avatar } alt='Banner' className='img-profile'/> : null}
+        <p className='username'>{user ? user.username : "name" }</p>
         <li className="nav-item">
           <Link to="/home" className={location.pathname === '/home' ? 'active' : ''}>
-            <HiOutlineHome style={getIconStyle('/home')} /> Home
+            <div className={'iconTitle'}>
+            <HiOutlineHome style={getIconStyle()} /><span>Home</span>
+            </div>
           </Link>
         </li>
         <li className="nav-item">
           <Link to="/profile" className={location.pathname === '/profile' ? 'active' : ''}>
-            <IoPersonOutline style={getIconStyle('/profile')} /> Profile
+            <div className={'iconTitle'}>
+            <IoPersonOutline style={getIconStyle()} /> <span>Profile</span>
+            </div>
           </Link>
         </li>
         <li className="nav-item">
           <Link to="/chat" className={location.pathname === '/chat' ? 'active' : ''}>
-            <BsChatDots style={getIconStyle('/chat')} /> Chat
+            <div className={'iconTitle'}>
+            <BsChatDots style={getIconStyle()} /> <span>Chat</span>
+            </div>
           </Link>
         </li>
         <li className="nav-item">
           <Link to="/game" className={location.pathname === '/game' ? 'active' : ''}>
-            <PiPingPongLight style={getIconStyle('/game')} /> Game
+            <div className={'iconTitle'}>
+
+            <PiPingPongLight style={getIconStyle()} /> <span>Game</span>
+            </div>
           </Link>
         </li>
         <li className="nav-item">
           <Link to="/friends" className={location.pathname === '/friends' ? 'active' : ''}>
-            <IoPeopleOutline style={getIconStyle('/friends')} /> Friends
+            <div className={'iconTitle'}>
+            <IoPeopleOutline style={getIconStyle()} /> <span>Friends</span>
+            </div>
           </Link>
         </li>
         <div className="spacer"></div>
         <li className="nav-item">
           <Link to="/settings" className={location.pathname === '/settings' ? 'active' : ''}>
-            <AiOutlineSetting style={getIconStyle('/settings')} /> Settings
+            <div className={'iconTitle'}>
+            <AiOutlineSetting style={getIconStyle()} /> <span>Settings</span>
+            </div>
           </Link>
         </li>
         <li className="nav-item">
           <Link to="/logout" className={location.pathname === '/logout' ? 'active' : ''}>
-            <TbLogout2 style={getIconStyle('/logout')} /> Logout
+            <div className={'iconTitle'}>
+            <TbLogout2 style={getIconStyle()} /> <span>Logout</span>
+            </div>
           </Link>
         </li>
       </ul>

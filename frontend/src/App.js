@@ -8,26 +8,34 @@ import Chat from './pages/chat/Chat';
 import Game from './pages/game/Game';
 import Friends from './pages/friends/Friends';
 import Settings from './pages/settings/Settings';
+import Loading from './pages/game/Loading';
 import Logout from './pages/logout/Logout';
 import SignIn from './pages/signin/SignIn';
 import SignUp from './pages/signin/SignUp';
 import { useAuth } from './context/AuthContext';
 import LoginCallback from './pages/signin/LoginCallback';
+import OAuthTwoFactorVerification from './components/OAuthTwoFactorVerification';
+import TwoFactorVerification from './components/TwoFactorVerification';
+import { NotificationProvider } from './context/NotificationContext';
+import Notifications from './components/Notifications';
+import NotificationSocket from './components/NotificationSocket';
+
+import "./App.css"
+
 import Local from './pages/game/Local';
-import Online from './pages/game/RemoteGame';
+import RemoteGame from './pages/game/RemoteGame';
 import SingleLocal from './pages/game/SingleLocal';
 import TournamentLocal from './pages/game/TournamentLocal';
 import Tournament from './pages/game/Tournament';
 import OnePlayerGame from './pages/game/OnePlayerGame';
 import TwoPlayersGame from './pages/game/TwoPlayersGame';
-import OnePlayerScore from './pages/game/Score1player';
-import TwoPlayersScore from './pages/game/Score2players';
-import TourFinalScore from './pages/game/TourFinalScore';
-import "./App.css"
+import Online from './pages/game/GameRequest';
+import Score from './pages/game/Score';
+import RandomInvite from './pages/game/RandomIvite';
+import Random from './pages/game/Random';
+import LoadingTournament from './pages/game/LoadingTournament';
 
-
-
-const App = () => {
+const AppContent = () => {
   const { islog } = useAuth();
 
   const router = createBrowserRouter([
@@ -35,12 +43,20 @@ const App = () => {
       path: "/",
       element: islog ? <Navigate to="/home" /> : <Outlet />,
       children: [
-        { path: "/", element: <SignIn /> },
-        { path: "/signIn", element: <SignIn /> },
-        { path: "/signUp", element: <SignUp /> },
-        { path: "/logincallback", element: <LoginCallback /> }
+        { path: "", element: <SignIn /> },
+        { path: "signIn", element: <SignIn /> },
+        { path: "signUp", element: <SignUp /> },
+        { path: "logincallback", element: <LoginCallback /> },
+        { path: "verify-2fa-oauth", element: <OAuthTwoFactorVerification /> },
+        { path: "verify-2fa", element: <TwoFactorVerification /> },
       ],
       errorElement: <Navigate to="/" />
+    },
+    {
+      future: {
+        v7_startTransition: true,
+        v7_relativeSplatPath: true
+      }
     },
     {
       path: "/",
@@ -53,156 +69,126 @@ const App = () => {
         </>
       ) : <Navigate to="/signIn" />,
       children: [
-        { path: "/home",
-          children:[
-            { path: "/home", element: <Home /> },
-            { path: "/home/:userId", element: <ProfileFriend /> },
-
+        {
+          path: "home/*",
+          children: [
+            { path: "", element: <Home /> },
+            { path: ":userId", element: <ProfileFriend /> },
+            { path: "TournamentLocal", element: <TournamentLocal /> },
+            { path: "SoloPractice",
+              children:[
+                { path: "", element: <OnePlayerGame /> },
+                { path: "Score", element: <Score /> },
+              ]
+            },
+            { path: "ChallengeAFriend",
+              children:[
+                { path: "", element: <TwoPlayersGame /> },
+                { path: "Score", element: <Score /> },
+              ]
+            },
           ]
         },
-        { path: "/profile",
-          children:[
-            { path: "/profile", element: <Profile /> },
-            { path: "/profile/:userId", element: <ProfileFriend /> },
+        { path: "chat/", element: <Chat /> },
+        {
+          path: "profile/*",
+          children: [
+            { path: "", element: <Profile /> },
+            { path: ":userId", element: <ProfileFriend /> },
           ]
         },
-        { path: "/friends",
-          children:[
-              { path: "/friends", element: <Friends /> },
-              { path: "/friends/:userId", element: <ProfileFriend /> },
-            ]
+        {
+          path: "friends/*",
+          children: [
+            { path: "", element: <Friends /> },
+            { path: ":userId", element: <ProfileFriend /> },
+          ]
         },
-        { path: "/chat", element: <Chat /> },
-        { path: "/game", 
-          children : [
+        {
+          path: "game/*",
+          children: [
             { path: "", element: <Game /> },
-            { path: "Local", 
-              children : [
+            {
+              path: "Local/*",
+              children: [
                 { path: "", element: <Local /> },
-                { path: "SingleGame", 
-                  children :[
+                {
+                  path: "SingleGame/*",
+                  children: [
                     { path: "", element: <SingleLocal /> },
-                    { path: "SoloPractice", 
-                      children:[
+                    {
+                      path: "SoloPractice/*",
+                      children: [
                         { path: "", element: <OnePlayerGame /> },
-                        { path: "Score", element: <OnePlayerScore /> },
+                        { path: "Score", element: <Score /> },
                       ]
-                     },
-                    { path: "ChallengeAFriend", 
-                    children:[
-                      { path: "", element: <TwoPlayersGame /> },
-                      { path: "Score", element: <TwoPlayersScore /> },
-                    ] },
+                    },
+                    {
+                      path: "ChallengeAFriend/*",
+                      children: [
+                        { path: "", element: <TwoPlayersGame /> },
+                        { path: "Score", element: <Score /> },
+                      ]
+                    },
                   ]
-                 },
-                { path: "TournamentLocal",
-                  children :[
+                },
+                {
+                  path: "TournamentLocal/*",
+                  children: [
                     { path: "", element: <TournamentLocal /> },
-                    { path: "Tournament",
-                      children:[
-                        { path: "", element: <Tournament /> },
-                        { path: "Results", element: <TourFinalScore /> },
-                    ]},
-                  ]},
-
-            ] },
-          { path: "/game/Online", 
-              children : [
-                { path: "", element: <Online /> },
-          ] },
+                    {path: "Tournament/*", element: <Tournament />},
+                  ]
+                },
+              ]
+            },
+            {
+              path: "Online/*",
+              children: [
+                { path: "", element: <RandomInvite />},
+                { path: "Invite/*",
+                  children: [
+                    { path: "", element: <Online /> },
+                    { path: ":userId", element: <ProfileFriend /> },
+                    { path: "Loading/:userId", element: <Loading /> },
+                  ]
+                },
+                { path: "play/:gameId", element: <RemoteGame /> },
+                { path: "Random", element: <Random /> },
+                { path: "LoadingTournament", element: <LoadingTournament /> },
+                { path: "Score", element: <Score /> },
+              ]
+            },
           ]
         },
-        { path: "/settings", element: <Settings /> },
-        { path: "/logout", element: <Logout /> },
-        { path: "/logincallback", element: <LoginCallback /> }
+        { path: "settings", element: <Settings /> },
+        { path: "logout", element: <Logout /> },
+        { path: "logincallback", element: <LoginCallback /> }
       ],
       errorElement: <Navigate to="/" />
     }
-  ]);
+  ], {
+    future: {
+      v7_relativeSplatPath: true
+    }
+  });
 
   return (
-    <div className="app-container">
+    <>
+      <Notifications />
+      <NotificationSocket />
       <RouterProvider router={router} />
-    </div>
+    </>
+  );
+};
+
+const App = () => {
+  return (
+    <NotificationProvider>
+      <div className="app-container">
+        <AppContent />
+      </div>
+    </NotificationProvider>
   );
 };
 
 export default App;
-
-
-
-
-// const App = () => {
-// const { islog } = useAuth(); // Get user from AuthContext
-
-
-
-//   const loginRouter = createBrowserRouter([
-//     {
-//       path: "/",
-//       element: islog ? <Navigate to="/home" /> : <Outlet />,
-//        children: [
-//         { path: "/", element: <SignIn /> },
-//         { path: "/signUp", element: <SignUp /> },
-//         { path: "/signIn", element: <SignIn /> },
-//         { path: "/logincallback", element: <LoginCallback /> },
-        
-//       ],
-//       errorElement: <Navigate to={"/"} />
-//     }
-//   ]);
-
-//   const router = createBrowserRouter([
-//     {
-//       path: "/",
-//       element: (
-//         <>
-//           <Navbar />
-//           <div className="page-content">
-//             <Outlet />
-//           </div>
-//         </>
-//       ),
-//       children: [
-//         { path: "/", element: <Home /> },
-//         // { path: "/signUp", element: <Navigate to="/home" /> },
-//         // { path: "/signIn", element: <Navigate to="/home" /> },
-//         { path: "/home",
-//           children:[
-//             { path: "/home", element: <Home /> },
-//             { path: "/home/:userId", element: <ProfileFriend /> },
-
-//           ]
-//         },
-//         { path: "/profile",
-//           children:[
-//             { path: "/profile", element: <Profile /> },
-//             { path: "/profile/:userId", element: <ProfileFriend /> },
-//           ]
-//         },
-//         { path: "/friends",
-//           children:[
-//               { path: "/friends", element: <Friends /> },
-//               { path: "/friends/:userId", element: <ProfileFriend /> },
-//             ]
-//         },
-//         { path: "/chat", element: <Chat /> },
-//         { path: "/game", element: <Game /> },
-//         { path: "/settings", element: <Settings /> },
-//         {path: "/logout", element: <Logout /> },
-//         { path: "/logincallback", element: <LoginCallback /> },
-//       ],
-//       errorElement: <Navigate to={"/home"} />
-//     },
-//   ]);
-
-  
-//   return (
-//     <div className="app-container">
-//       <RouterProvider router={islog ? router : loginRouter} /> 
-//     </div>
-//   );
-// };
-
-// export default App;
-

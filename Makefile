@@ -3,7 +3,7 @@ BACKEND_SERVICE = web
 
 
 up:
-	@docker-compose -f $(COMPOSE_FILE) up  --build -d
+	@docker-compose -f $(COMPOSE_FILE) up -d --build 
 
 down:
 	@docker-compose -f $(COMPOSE_FILE) down
@@ -19,7 +19,7 @@ ps:
 	@docker-compose -f $(COMPOSE_FILE) ps
 
 makemigrations:
-	@docker-compose -f $(COMPOSE_FILE) exec $(BACKEND_SERVICE) python manage.py makemigrations $(APPNAME)
+	@docker-compose -f $(COMPOSE_FILE) exec $(BACKEND_SERVICE) python manage.py makemigrations
 
 migrate:
 	@docker-compose -f $(COMPOSE_FILE) exec $(BACKEND_SERVICE) python manage.py migrate
@@ -27,9 +27,6 @@ migrate:
 clean:
 	@docker-compose -f $(COMPOSE_FILE) down --volumes --remove-orphans
 	@docker system prune -f --volumes
-
-createsuperuser:
-	@docker-compose exec -it web python manage.py createsuperuser
 
 frontend:
 	@docker-compose -f $(COMPOSE_FILE) up -d --build frontend
@@ -39,6 +36,3 @@ backend:
 
 db:
 	@docker-compose -f $(COMPOSE_FILE) up -d --build db
-
-shell:
-	@docker-compose exec -it $(BACKEND_SERVICE) python manage.py shell

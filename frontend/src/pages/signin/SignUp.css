@@ -7,7 +7,6 @@
     background-color: #3F4054;
   }
   
-  
 
 .sup-container-content{
     width: 400px;
@@ -125,7 +124,7 @@
 .sup-error{
     color: #a40935;
     font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-}
+  }
 .sup-login-by:hover{
     background-color:#3F4054;
 }

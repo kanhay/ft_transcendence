@@ -1,10 +1,9 @@
-Django==5.0.6
+Django>=3.2,<4.0
 psycopg2-binary
 djangorestframework
-
-djangorestframework-simplejwt  # For JWT tokens
-social-auth-app-django  # For OAuth
-django-cors-headers  # For security
+djangorestframework-simplejwt 
+social-auth-app-django 
+django-cors-headers  
 django-oauth-toolkit 
 python-dotenv
 requests
@@ -13,8 +12,7 @@ qrcode==7.4.2
 pyotp==2.9.0
 pillow==10.0.0
 
+
 daphne
 channels
-
-
-
+channels_redis

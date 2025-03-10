@@ -1,41 +1,62 @@
-import React 
-from 'react';
+import React, { useState, useEffect } from 'react';
 import Banner from '../../components/Banner';
 import './Profile.css';
-import Profileimg from './profile.jpg';
 import { Link, useNavigate } from 'react-router-dom';
-// import Imgp from './imgp.jpg';
-
+import { useAuth } from '../../context/AuthContext';
 import { IoPersonOutline } from "react-icons/io5";
-import { BsChatDots } from "react-icons/bs";
 import { IoEllipse } from "react-icons/io5";
-
 import { FaMedal, FaTrophy, FaStar } from 'react-icons/fa';
-// import { Outlet } from 'react-router-dom';
+import axios from 'axios';
 
 const Profile = () => {
-    const friends = [
-      { id: 1, name: 'Alice Smith', message: 'Hey! How are you?', chat: <BsChatDots/>, profile:<IoPersonOutline /> ,image: Profileimg  },
-      { id: 2, name: 'Bob Johnson', message: 'Let’s catch up soon!', chat: <BsChatDots/>, profile:<IoPersonOutline /> , image: Profileimg  },
-      { id: 3, name: 'Charlie Brown', message: 'I’ll be there at 5.', chat: <BsChatDots/>, profile:<IoPersonOutline /> , image: Profileimg  },
-      { id: 4, name: 'Daisy Miller', message: 'Can you call me?', chat: <BsChatDots/>, profile:<IoPersonOutline /> , image: Profileimg  },
-      { id: 5, name: 'Daisy Miller', message: 'Can you call me?', chat: <BsChatDots/>, profile:<IoPersonOutline /> , image: Profileimg  }
-    ];
+    const [listFriends, setListFriends] = useState([]);
+    const [achievements, setAchievements] = useState([]);
+    const [gameHistory, setGameHistory] = useState([]);
+    const [withLevel, setWithLevel] = useState('0%');
+    const [level, setLevel] = useState(0);
 
-    const gameHistory = [
-      { id: 1, img: Profileimg, result: 'Win', level: '5.00'},
-      { id: 2, img: Profileimg, result: 'Lose', level: '4.50'},
-      { id: 3, img: Profileimg, result: 'Win', level: '5.00'},
-      { id: 4, img: Profileimg, result: 'Lose', level: '3.80'},
-      { id: 5, img: Profileimg, result: 'Win', level: '4.20'}
-    ];
+    const [stats, setStats] = useState({ wins: 0, losses: 0, total_games: 0 });
+    const { setUser, user } = useAuth();
+    axios.defaults.withCredentials = true;
 
-    const achievements = [
-      { id: 1, icon: <FaMedal />, title: 'First Win', description: 'Won your first game!' },
-      { id: 2, icon: <FaTrophy />, title: 'Level 10', description: 'Reached level 10.' },
-      { id: 3, icon: <FaStar />, title: 'MVP', description: 'Awarded Most Valuable Player in 3 games.' },
-      { id: 4, icon: <FaMedal />, title: '10 Games Played', description: 'Participated in 10 games.' }
-    ];
+    useEffect(() => {
+      if (user) {
+        axios.get('friends/allfriends/')
+          .then((response) => {
+            setListFriends(response.data);
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+        axios.get(`game/achievements/${user.id}/`)
+          .then((response) => {
+            setAchievements(response.data);
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+  
+        axios.get(`infoUserProfile/${user.id}/`)
+          .then((response) => {
+            const { wins, losses, widthlvl, level } = response.data;
+            const total_games = wins + losses;
+            setStats({ wins, losses, total_games });
+            setWithLevel(widthlvl + '%')
+            setLevel(level)
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+  
+        axios.get(`game/userhistory/${user.id}/`)
+          .then((response) => {
+            setGameHistory(response.data);
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      }
+    }, [user,setUser]);
 
   const navigate = useNavigate();
 
@@ -43,25 +64,31 @@ const Profile = () => {
     navigate('/settings');
   }
 
-
-  return (
+  return (  
     <div>
       <Banner />
       <div className="content-profile">
-          <p className='title-profile'>Profile</p>
+          <h1 className='title-profile'>Profile</h1>
             <div className="info-profile">
               <div className="user-name"> 
-                <img src={Profileimg} alt='Profileimg' className="profile-photo"/>
+                {user && user.avatar ? <img src={user.avatar} alt='Profileimg' className="profile-photo"/> : null}
                 <div className="name-status">
-                  Alice Smith
+                  {user ? user.username : ''}  
                   <div className="status">
-                  <IoEllipse className="status-icon"/><span>online</span>
+                  <IoEllipse className="profile-status-icon"/><span>{user ? user.status : ''}</span>
                   </div>
-                </div>              
+                </div>
+                <div>
+                  <div className="info-stats">
+                    <p><strong>Wins:</strong> {stats.wins}</p>
+                    <p><strong>Losses:</strong> {stats.losses}</p>
+                    <p><strong>Total Games:</strong> {stats.total_games}</p>
+                  </div>
+                </div>           
               </div>
               <div className="level">
                 <div className="level-bar">
-                <div className="level-fill" style={{ width: '70%' }}> <div className="my-level">lvl: 3.70 </div></div>
+                <div className="level-fill" style={{ width: withLevel }}> <div className="my-level">{level +"."+ withLevel}</div></div>
               </div>
                 <div className="edit" onClick={handleEditClick}>
                   <div className="text-edit">Edit</div>
@@ -70,58 +97,80 @@ const Profile = () => {
             </div>
         <div className="infos">
           <div className="info-group">
-            <p className='titles-profile'>Friends</p>
+            <h1 className='titles-profile'>Friends</h1>
             <div className="info-friends">
               <ul className="friends-list">
-              {friends.map(friend => (
+              {listFriends.length > 0 ? (listFriends.map(friend => (
                   <li key={friend.id} className="friend-item">
-                    <img src={friend.image} alt={friend.name} className="friend-photo" />
+                    {friend && friend.avatar ? <img src={friend.avatar} alt="img" className="friend-photo" /> : null}
                     <div className="friend-details">
-                      <span className="friend-name">{friend.name}</span>
-                      <span className="friend-message">{friend.message}</span>
+                      <span className="friend-name">{friend.username}</span>
+                      <div className="friend-message">
+                        <IoEllipse 
+                        style={{ 
+                          color: friend.status === 'Online' ? '#BBFC52' : '#E84172' 
+                        }} 
+                        className="profile-status-icon" 
+                      />
+                        <span>{friend.status}</span>
+                      </div>
                     </div>
                     <div className="friend-icons">
-                        <Link className="icon" to={`/profile/${friend.id}`}>{friend.profile}</Link>
-                        <Link className="icon" to={`/chat`}>{friend.chat}</Link>
+                        <Link className="icon" to={`/profile/${friend.id}`}>< IoPersonOutline /></Link>
                     </div>
                   </li>
-                ))}
+                ))) : (
+                  <li className="friend-item">No Friends yet.</li>
+                )}
               </ul>
             </div>
           </div>
           <div className="info-group">
-            <p className='titles-profile'>History</p>
+            <h1 className='titles-profile'>History</h1>
             <div className="info-history">
               <ul className="history-list">
-                {gameHistory.map(game => (
+                {gameHistory.length > 0 ? (gameHistory.map(game => (
                   <li key={game.id} className="history-item">
-                    <img src={game.img} alt="Game History" className="history-profile" />
+                    {game && game.avatar ? <img
+                      src={game.avatar}
+                      alt="GameHistory"
+                      className="history-profile"
+                    /> : null}
                     <span
                       className="history-result"
                       style={{ color: game.result === 'Win' ? '#D8FD62' : '#E84172' }}>
                       {game.result}
                     </span>
-                    <span className="history-level">Level: {game.level}</span>
+                    <span className="history-level">Score: {game.score}</span>
                   </li>
-                ))}
+                ))) : (
+                  <li className="history-item">No Game History yet.</li>
+                )}
               </ul>
             </div>
           </div>
           <div className="info-group">
-            <p className='titles-profile'>Achievement</p>
+            <h1 className='titles-profile'>Achievement</h1>
             <div className="info-achievement">
               <ul className="achievement-list">
-                  {achievements.map(achievement => (
+              {achievements.length > 0 ? (
+                  achievements.map(achievement => (
                     <li key={achievement.id} className="achievement-item">
-                      <span className="achievement-icon">{achievement.icon}</span>
+                      <span className="achievement-icon">
+                        {achievement.category === "lvl Achievement" &&  <FaTrophy />}
+                        {achievement.category === "Wins Achievement" &&<FaMedal />}
+                        {achievement.category === "fast win" && <FaStar />}
+                      </span>
                       <div className="achievement-details">
                         <span className="achievement-title">{achievement.title}</span>
                         <span className="achievement-description">{achievement.description}</span>
                       </div>
                     </li>
-                  ))}
+                  ))
+                ) : (
+                  <li className="achievement-item">No achievements yet.</li>
+                )}
                 </ul>
-                {/* <div className="all-achievement-button" onClick={handleAllAchievementsClick}><div className="text-all-achievement">All Achievement</div></div> */}
             </div>
           </div>
         </div>

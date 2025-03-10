@@ -1,38 +1,35 @@
 
 import React, { useState } from "react";
-// import "./FirstPage.css";
-// import Banner from '../../components/Banner';
 import PongSimulator from "./PongSimulator";
 import { GiPingPongBat } from "react-icons/gi";
-// import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
+import { useNavigate} from "react-router-dom";
 import './Game.css'
-import axios from 'axios'
+import axios from 'axios';
+import { useNotification } from '../../context/NotificationContext';
 
 const Game = () => {
   const [gameMode, setGameMode] = useState("");
-
-    // const navigate = useNavigate();
-    // const handleStart = () =>{
-    //     navigate('/Local');
-    // }
+  const navigate = useNavigate();
+  const { addNotification } = useNotification();
 
     const handleChange = (e) => {
         setGameMode(e.target.value);
-        // console.log(e.target.value);
     };
 
-    const handleSubmit = () => {
-        axios({
-            method: 'post',
-            url: "http://localhost:8000/game/create/",
-            data: {
-                mode: gameMode,
+    const handleClick = () => {
+        if (!gameMode)
+            return;
+        axios.get(`game/checkuseringame/`)
+        .then((response) => {
+            if(response.data.message === "Active game"){
+              addNotification("ich oukan bbin idoukaaaaaaan", "warning")
             }
-        })
-        .then(response => console.log(response.data))
-        .catch(error => console.log(error));
+            else{
+                navigate(`/game/${gameMode}`);
+            }
+      })
     }
+
     return (
         
         <div className="Game-page-container">
@@ -67,18 +64,16 @@ const Game = () => {
                 </div>
                     <hr className="Separator-line"></hr>
                 <div className="Start-button">
-                  {gameMode ? (
-                        <Link  className="link" to={`/game/${gameMode}`} onClick= {handleSubmit()}>
+                  {/* {gameMode && */}
+                        <button className="link" onClick={handleClick()} >
                                 <GiPingPongBat/> START
-                        </Link>
-                    ) : (
-                        <button className="link" >
+                        </button>
+                    {/* ) : (
+                        <button className="link"  >
                             <GiPingPongBat/> START
                         </button>
-                    )}
+                    )} */}
                 </div>
-                    {/* <Link className="START" to={`/game/${gameMode}`}><GiPingPongBat /> START</Link> */}
-
             </div>
                 
         </div>

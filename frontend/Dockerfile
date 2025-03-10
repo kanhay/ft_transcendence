@@ -1,21 +1,21 @@
-# Use the official Node.js image
-FROM node:16
+FROM node:18 as build
 
-# Set the working directory in the container
 WORKDIR /app
 
-# Copy package.json and package-lock.json
 COPY package*.json ./
 
-# Install dependencies
 RUN npm install
 
-# Copy the rest of the application code
-# COPY . .
-RUN npm i
+COPY . .
 
-# Expose the port the application runs on
-EXPOSE 3000
+RUN npm run build
 
-# Command to run the application
-CMD ["npm", "start"]
+FROM node:18-slim
+
+RUN npm install -g serve
+
+WORKDIR /app
+
+COPY --from=build /app/build .
+
+CMD ["serve", "-s", ".", "-l", "3000"]
