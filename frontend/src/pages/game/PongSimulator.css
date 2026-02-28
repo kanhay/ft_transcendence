@@ -1,10 +1,11 @@
-body{
-    display: flex;
+body {
+    /* display: flex; */
     width: 100vw;
     height: 100vh;
     align-items: center;
     justify-content: center;
 }
+
 .container {
     display: flex;
     align-items: center;
@@ -14,20 +15,20 @@ body{
     height: 310px;
     position: relative;
 }
+
 .net {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 5px;
     height: 100%;
-    background: repeating-linear-gradient(
-        #D5CFCF 0,
-        #D5CFCF 10px,
-      transparent 10px,
-      transparent 20px
-      );
+    background: repeating-linear-gradient(#D5CFCF 0,
+            #D5CFCF 10px,
+            transparent 10px,
+            transparent 20px);
 }
-.paddle4bot{
+
+.paddle4bot {
     background-color: #E84172;
     width: 15px;
     height: 70px;
@@ -36,8 +37,9 @@ body{
     left: 0;
     animation: movePaddleBot 1s infinite alternate;
 }
-.paddle4player{
-    background-color:#b2ff00;
+
+.paddle4player {
+    background-color: #b2ff00;
     width: 15px;
     height: 70px;
     position: absolute;
@@ -45,33 +47,49 @@ body{
     right: 0;
     animation: movePaddlePlayer 1s infinite alternate;
 }
-.ball{
+
+.ball {
     background-color: white;
     width: 20px;
     height: 20px;
     border-radius: 50%;
     position: absolute;
     animation: moveBall 4s infinite alternate linear;
-    }
-@keyframes moveBall {
-        0% {
-            top: 0px;
-            left: 20px;
-        }
-        50% {
-            top: 270px;
-            left: 370px;
-        }
-        100% {
-            top: 0;
-            left: 20px;
-        }
-    }
-@keyframes movePaddleBot {
-    from {top: 0px;}
-    to {top: 240px;}
 }
+
+@keyframes moveBall {
+    0% {
+        top: 0px;
+        left: 20px;
+    }
+
+    50% {
+        top: 270px;
+        left: 370px;
+    }
+
+    100% {
+        top: 0;
+        left: 20px;
+    }
+}
+
+@keyframes movePaddleBot {
+    from {
+        top: 0px;
+    }
+
+    to {
+        top: 240px;
+    }
+}
+
 @keyframes movePaddlePlayer {
-from {top: 240px;}
-to {top: 0px;}
+    from {
+        top: 240px;
+    }
+
+    to {
+        top: 0px;
+    }
 }

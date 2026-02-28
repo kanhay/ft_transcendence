@@ -7,8 +7,8 @@
 ├── public
 │   ├── favicon.ico
 │   ├── index.html
-│   ├── logo192.png
-│   ├── logo512.png
+│   ├── ponGame.png
+│   ├── ponGame.png
 │   ├── manifest.json
 │   └── robots.txt
 ├── scan-project.js

@@ -1,49 +1,49 @@
 .navbar {
-    background: linear-gradient(#3F4054, #666C8B, #404155);
-    display: flex;
-    justify-content: flex-start;
-    align-items: flex-start;
-    padding:90px 10px;
-    width: 95px;
+  background: linear-gradient(#3F4054, #666C8B, #404155);
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding: 90px 10px;
+  width: 95px;
 
-  }
+}
 
-  .iconTitle {
-    display: flex;
-    flex-direction: row;
-    justify-content:flex-start;
-    align-items: center;
-    gap: 4px;
-  }
+.iconTitle {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 4px;
+}
 
-  
-  .nav-items {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-  
-  .nav-item {
-    margin-bottom: 10px;
-  }
-  
-  .nav-item a {
-    font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-    color: white;
-    text-decoration: none;
-    font-size: 16px;
-    display: block;
-    padding: 10px;
-  }
-  
-  .nav-item a:hover,
-  .nav-item a.active{
-    color: #BBFC52;
-  }
 
-  .spacer {
-    margin-top: 500px; 
-  }
+.nav-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.nav-item {
+  margin-bottom: 10px;
+}
+
+.nav-item a {
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  color: white;
+  text-decoration: none;
+  font-size: 16px;
+  display: block;
+  padding: 10px;
+}
+
+.nav-item a:hover,
+.nav-item a.active {
+  color: #BBFC52;
+}
+
+.spacer {
+  margin-top: 500px;
+}
 
 
 .hamburger {
@@ -58,10 +58,10 @@
 
 
 .nav-icon {
-margin-right: 4px;
+  margin-right: 4px;
 }
 
-.img-profile{
+.img-profile {
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -69,11 +69,11 @@ margin-right: 4px;
   object-fit: cover;
 }
 
-.username{
+.username {
   text-align: center;
   color: white;
   font-size: 15px;
-  font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  margin-top: 5px;
+  margin-bottom: 20px;
 }
-
-
